@@ -10,11 +10,7 @@ const App: React.FC = (): JSX.Element => {
   const [contacts, setContacts] = useState<Contact[]>(() => {
     const storedContacts = localStorage.getItem('contacts');
 
-    if (storedContacts) {
-      return JSON.parse(storedContacts);
-    } else {
-      return [];
-    }
+    return JSON.parse(storedContacts as string) || [];
   });
   const [filter, setFilter] = useState('');
 
@@ -40,23 +36,17 @@ const App: React.FC = (): JSX.Element => {
   };
 
   const removeContact = (id: string) => {
-    const filteredContacts = contacts.filter((el) => el.id !== id);
-
-    setContacts([...filteredContacts]);
+    setContacts((prev) => prev.filter((el) => el.id !== id));
   };
 
   const renderContacts = () => {
-    if (!filter) {
-      return contacts;
-    }
-
     const filterValue = filter.toLowerCase();
-    const filteredContacts = contacts.filter(({ name }) => {
+
+    return contacts.filter(({ name }) => {
       const nameValue = name.toLowerCase();
+
       return nameValue.includes(filterValue);
     });
-
-    return filteredContacts;
   };
 
   return (
