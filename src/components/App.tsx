@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Contact } from '../types/common';
+import { Contact, ContactWithoutId } from '../types/common';
 import ContactsForm from './ContactsForm/ContactsForm';
 import ContactsList from './ContactsList/ContactsList';
 import Filter from './Filter/Filter';
@@ -7,33 +7,67 @@ import Title from './Title/Title';
 import s from './app.module.scss';
 
 const App: React.FC = (): JSX.Element => {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
+  const [contacts, setContacts] = useState<Contact[]>(() => {
     const storedContacts = localStorage.getItem('contacts');
 
-    if (storedContacts && storedContacts.length > 2) {
-      const parsedContacts: Contact[] = JSON.parse(storedContacts);
-
-      setContacts([...parsedContacts]);
+    if (storedContacts) {
+      return JSON.parse(storedContacts);
+    } else {
+      return [];
     }
-  }, []);
+  });
+  const [filter, setFilter] = useState('');
 
   useEffect(() => {
     localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
 
+  const addContact = (contact: ContactWithoutId) => {
+    const userExists = contacts.find(
+      (el) => el.name.toLowerCase() === contact.name.toLowerCase()
+    );
+
+    if (userExists) return alert(`${userExists.name} already in contacts`);
+
+    setContacts((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        name: contact.name,
+        contactNumber: contact.contactNumber,
+      },
+    ]);
+  };
+
+  const removeContact = (id: string) => {
+    const filteredContacts = contacts.filter((el) => el.id !== id);
+
+    setContacts([...filteredContacts]);
+  };
+
+  const renderContacts = () => {
+    if (!filter) {
+      return contacts;
+    }
+
+    const filterValue = filter.toLowerCase();
+    const filteredContacts = contacts.filter(({ name }) => {
+      const nameValue = name.toLowerCase();
+      return nameValue.includes(filterValue);
+    });
+
+    return filteredContacts;
+  };
+
   return (
     <div className={s.app}>
       <Title type='h2' text='Phonebook' />
-      <ContactsForm contacts={contacts} setContacts={setContacts} />
+      <ContactsForm addContact={addContact} />
       <Title type='h2' text='Contacts' />
       <Filter filter={filter} setFilter={setFilter} />
       <ContactsList
-        contacts={contacts}
-        filter={filter}
-        setContacts={setContacts}
+        removeContact={removeContact}
+        renderContacts={renderContacts()}
       />
     </div>
   );

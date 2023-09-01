@@ -1,19 +1,17 @@
 import { useState } from 'react';
-import { Contact } from '../../types/common';
+import { ContactWithoutId } from '../../types/common';
 import s from './contactsForm.module.scss';
 
 interface ContactsFormProps {
-  contacts: Contact[];
-  setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
+  addContact: (contact: ContactWithoutId) => void;
 }
 
 const ContactsForm: React.FC<ContactsFormProps> = ({
-  contacts,
-  setContacts,
+  addContact,
 }): JSX.Element => {
   const [contact, setContact] = useState({
     name: '',
-    number: '',
+    contactNumber: '',
   });
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,30 +21,17 @@ const ContactsForm: React.FC<ContactsFormProps> = ({
     }));
   };
 
-  const addContact: React.FormEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
 
-    const userExists = contacts.find(
-      (el) => el.name.toLowerCase() === contact.name.toLowerCase()
-    );
+    addContact(contact);
 
-    if (userExists) return alert(`${userExists.name} already in contacts`);
-
-    setContacts((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: contact.name,
-        number: contact.number,
-      },
-    ]);
-
-    setContact({ name: '', number: '' });
+    setContact({ name: '', contactNumber: '' });
   };
 
   return (
     <>
-      <form className={s.form} onSubmit={addContact}>
+      <form className={s.form} onSubmit={handleSubmit}>
         <label className={s.form__label}>
           Name:
           <input
@@ -67,8 +52,8 @@ const ContactsForm: React.FC<ContactsFormProps> = ({
             className={s.form__input}
             onChange={handleChange}
             type='tel'
-            name='number'
-            value={contact.number}
+            name='contactNumber'
+            value={contact.contactNumber}
             pattern='\+?\d{1,4}?[ .\-\s]?\(?\d{1,3}?\)?[ .\-\s]?\d{1,4}[ .\-\s]?\d{1,4}[ .\-\s]?\d{1,9}'
             maxLength={30}
             required
